@@ -25,12 +25,12 @@ class Blackjack extends JFrame {
 	private JLabel userCards[] = new JLabel[8];
 	
 	/* User Bet Component */
-	private JLabel modal = new JLabel("Modal :   Rp.");
+	private final JLabel modal = new JLabel("Modal :   Rp.");
 	private JTextField modalField = new JTextField();
 	private JButton buttonBet[] = new JButton[7];
 	
-	private String buttonBetText[] = {"START","HIT","PASS","DOUBLE","STAND","CONTINUE","RESTART"};
-	private int left[] = {10, 120, 230, 340, 450, 560, 670, 780};
+	private final String buttonBetText[] = {"START","HIT","PASS","DOUBLE","STAND","CONTINUE","RESTART"};
+	private final int left[] = {10, 120, 230, 340, 450, 560, 670, 780};
 	private int i=0;
 	
 	/* Maximum Modal */
@@ -95,28 +95,32 @@ class Blackjack extends JFrame {
 		this.myPanel[1].add(this.myPanel[3]);
 	}
 	
+	/* Init All Hands Cards */
+	private void initAllHands() throws Exception {
+		for(i=0;i<userCards.length;i++) {
+			if(i<2) {
+				this.bandarCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
+				this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
+				this.bandarCards[i].setBounds(left[i],10,100,134);
+				this.userCards[i].setBounds(left[i],10,100,134);
+				this.myPanel[2].add(this.bandarCards[i]);
+				this.myPanel[3].add(this.userCards[i]);
+			} else {
+				this.bandarCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
+				this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
+				this.myPanel[2].add(this.bandarCards[i]);
+				this.myPanel[3].add(this.userCards[i]);
+			}
+		}
+	}
+	
 	/* Prepare Table Cards */
 	private void prepareTable() {
 		try {
 			this.tableCards = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
 			this.tableCards.setBounds(930,77,100,134);
 			this.myPanel[0].add(this.tableCards);
-
-			for(i=0;i<userCards.length;i++) {
-				if(i<2) {
-					this.bandarCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
-					this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
-					this.bandarCards[i].setBounds(left[i],10,100,134);
-					this.userCards[i].setBounds(left[i],10,100,134);
-					this.myPanel[2].add(this.bandarCards[i]);
-					this.myPanel[3].add(this.userCards[i]);
-				} else {
-					this.bandarCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
-					this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/back.png"))));
-					this.myPanel[2].add(this.bandarCards[i]);
-					this.myPanel[3].add(this.userCards[i]);
-				}
-			}
+			this.initAllHands();
 		} catch(Exception e) {
 			System.out.println("Error = " + e.getMessage());
 		}
@@ -148,7 +152,6 @@ class Blackjack extends JFrame {
 					JOptionPane.showMessageDialog(null, "Modal tidak boleh lebih dari 1jt!");
 				} else {
 					initStartGame();
-					initBandarHands();
 				}
 			} else if(e.getSource() == buttonBet[1]) {
 				initHitGame();
@@ -159,17 +162,16 @@ class Blackjack extends JFrame {
 			} else if(e.getSource() == buttonBet[4]) {
 				initStandGame();
 			} else if(e.getSource() == buttonBet[5]) {
-				//initContinueGame();
+				initContinueGame();
 			} else if(e.getSource() == buttonBet[6]) {
-				//initRestartGame();
+				initRestartGame();
 			}
 		}
 	}
 	
-	/* Init Start the Game */
-	private void initStartGame() {
+	/* Init Player Hands Cards */
+	private void initPlayerHands() {
 		try {
-			this.modalField.setEnabled(false);
 			for(i=0;i<this.buttonBet.length-2;i++) {
 				this.buttonBet[i].setEnabled(true);
 				if(i==0) this.buttonBet[i].setEnabled(false);
@@ -199,23 +201,29 @@ class Blackjack extends JFrame {
 		int j=0;
 		for(i=0;i<this.bandarArrayCards.length;i++) {
 			if(this.bandarSumScore < 22) {
-				this.bandarSumScore += this.bandarArrayCards[i];
-				this.bandarInHandsCards += 1;
+				this.bandarSumScore += (this.bandarArrayCards[i] > 10) ? 10 : this.bandarArrayCards[i];
+				this.bandarInHandsCards+=1;
+				this.bandarArrayInHandsCards[j] = (this.bandarArrayCards[i] > 10) ? 10 : this.bandarArrayCards[i];
 				if(this.bandarMaxPass > 0) {
-					if(this.bandarSumScore >16 && this.bandarSumScore < 22) {
-						this.bandarArrayInHandsCards[j] = this.bandarArrayCards[i];
-						break;
-					} else if(this.bandarSumScore > 21) {
-						this.bandarSumScore -= this.bandarArrayCards[i];
-						this.bandarMaxPass -= 1;
+					if(this.bandarSumScore > 21) {
+						this.bandarSumScore-=(this.bandarArrayCards[i] > 10) ? 10 : this.bandarArrayCards[i];
+						this.bandarMaxPass-=1;
 						this.bandarInHandsCards -= 1;
 						j-=1;
+						this.bandarArrayInHandsCards[j] = (this.bandarArrayCards[i-1] > 10) ? 10 : this.bandarArrayCards[i-1];
 					}
 				}
-				this.bandarArrayInHandsCards[j] = this.bandarArrayCards[i];
+				if(this.bandarSumScore > 16 && this.bandarSumScore < 22) break;
 				j+=1;
 			}
 		}
+	}
+	
+	/* Init Start the Game */
+	private void initStartGame() {
+		this.modalField.setEnabled(false);
+		this.initPlayerHands();
+		this.initBandarHands();
 	}
 	
 	/* Init Hit Game */
@@ -290,36 +298,93 @@ class Blackjack extends JFrame {
 	/* Init The Game Winner */
 	private void initWinner() {
 		this.initBandarCardsTable();
-		if((this.playerSumScore > this.bandarSumScore) && this.playerSumScore < 22) {
+		boolean result = false;
+		if(this.playerSumScore > this.bandarSumScore && (this.playerSumScore < 22 && (this.bandarSumScore < 22 || this.bandarSumScore > 21))) {
 			JOptionPane.showMessageDialog(null, "Kamu Menang Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
-			for(i=0;i<this.buttonBet.length;i++) {
-				this.buttonBet[i].setEnabled(false);
-				if(i==5) this.buttonBet[i].setEnabled(true);
-			}
-		} else if(this.playerSumScore == this.bandarSumScore) {
+			result = true;
+		} else if(this.playerSumScore == this.bandarSumScore && this.playerSumScore < 22) {
 			JOptionPane.showMessageDialog(null, "Draw Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
-			for(i=0;i<this.buttonBet.length;i++) {
-				this.buttonBet[i].setEnabled(false);
-				if(i==5) this.buttonBet[i].setEnabled(true);
-			}
+			result = true;
+		} else if(this.playerSumScore < 22 && this.bandarSumScore > 21) {
+			JOptionPane.showMessageDialog(null, "Kamu Menang Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			result = true;
 		} else {
 			JOptionPane.showMessageDialog(null, "Kamu Kalah Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			result = false;
+		}
+		
+		if(result == true) {
+			for(i=0;i<this.buttonBet.length;i++) {
+				this.buttonBet[i].setEnabled(false);
+				if(i>4) this.buttonBet[i].setEnabled(true);
+			}
+		} else {
+			for(i=0;i<this.buttonBet.length;i++) {
+				this.buttonBet[i].setEnabled(false);
+				if(i==6) this.buttonBet[i].setEnabled(true);
+			}
+		}
+	}
+	
+	/* Init Clear All Hands */
+	private void initClearAllHands() throws Exception {
+		for(i=0;i<this.userCards.length;i++) {
+			this.myPanel[2].remove(this.bandarCards[i]);
+			this.myPanel[3].remove(this.userCards[i]);
+			this.myPanel[2].revalidate();
+			this.myPanel[3].revalidate();
+			this.myPanel[2].repaint();
+			this.myPanel[3].repaint();
 		}
 	}
 	
 	/* Init Continue Game */
 	private void initContinueGame() {
-		//
+		try {
+			this.initClearAllHands();
+			this.initAllHands();
+			this.playerCardsPosition = 0;
+			this.playerInHandsCards = 0;
+			this.bandarInHandsCards = 0;
+			this.playerSumScore = 0;
+			this.bandarSumScore = 0;
+			this.playerArrayCards = new int[20];
+			this.bandarArrayCards = new int[20];
+			this.playerArrayInHandsCards = new int[20];
+			this.bandarArrayInHandsCards = new int[20];
+			for(i=0;i<this.buttonBet.length;i++) {
+				this.buttonBet[i].setEnabled(false);
+				if(i>0 && i<5) this.buttonBet[i].setEnabled(true);
+			}
+			this.initPlayerHands();
+			this.initBandarHands();
+		} catch(Exception e) {
+			System.out.println("Error = " + e.getMessage());
+		}
 	}
 	
 	/* Init Restart Game */
 	private void initRestartGame() {
-		this.playerCardsPosition = 0;
-		this.playerInHandsCards = 0;
-		this.playerArrayCards = new int[20];
-		this.bandarArrayCards = new int[20];
-		this.playerArrayInHandsCards = new int[20];
-		this.initStartGame();
+		try {
+			this.initClearAllHands();
+			this.initAllHands();
+			this.playerCardsPosition = 0;
+			this.playerInHandsCards = 0;
+			this.bandarInHandsCards = 0;
+			this.playerSumScore = 0;
+			this.bandarSumScore = 0;
+			this.playerArrayCards = new int[20];
+			this.bandarArrayCards = new int[20];
+			this.playerArrayInHandsCards = new int[20];
+			this.bandarArrayInHandsCards = new int[20];
+			this.modalField.setEnabled(true);
+			for(i=0;i<this.buttonBet.length;i++) {
+				this.buttonBet[i].setEnabled(true);
+				if(i>0) this.buttonBet[i].setEnabled(false);
+			}
+		} catch(Exception e) {
+			System.out.println("Error = " + e.getMessage());
+		}
 	}
 	
 	/* init main app */
