@@ -29,12 +29,26 @@ class Blackjack extends JFrame {
 	private JTextField modalField = new JTextField();
 	private JButton buttonBet[] = new JButton[7];
 	
+	/* Text Box Component */
+	private String message = "";
+	private JLabel credits = new JLabel("Created By Faddi 17/11/2020");
+	private JTextArea textBox = new JTextArea();
+	private JScrollPane scroll = new JScrollPane(textBox,
+									ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+									ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	
 	private final String buttonBetText[] = {"START","HIT","PASS","DOUBLE","STAND","CONTINUE","RESTART"};
 	private final int left[] = {10, 120, 230, 340, 450, 560, 670, 780};
 	private int i=0;
 	
 	/* Maximum Modal */
 	private final int MAX_MODAL = 1000000;
+	
+	/* Player Score */
+	private int biggestScore = 0;
+	private int runningScore = 0;
+	private JLabel scoreLabel = new JLabel("Biggest Score :");
+	private JLabel score = new JLabel();
 	
 	/* User/Bandar Array Cards */
 	private int playerArrayCards[] = new int[20];
@@ -57,6 +71,11 @@ class Blackjack extends JFrame {
 		this.frame();
 		this.prepareTable();
 		this.prepareBetComponent();
+		this.prepareTextBox();
+		this.prepareEtc();
+		
+		this.message += "Initialize Game Component...\n";
+		this.textBox.setText(this.message);
 		
 		i=0;
 		while(i<buttonBet.length) {
@@ -142,6 +161,24 @@ class Blackjack extends JFrame {
 		}
 	}
 	
+	/* Prepare Text Box */
+	private void prepareTextBox() {
+		this.textBox.setEditable(false);
+		this.scroll.setLocation(10,390);
+		this.scroll.setSize(new Dimension(400,250));
+		this.myPanel[0].add(this.scroll);
+	}
+	
+	private void prepareEtc() {
+		this.scoreLabel.setBounds(420,390,100,25);
+		this.score.setBounds(520,390,100,25);
+		this.credits.setBounds(420,425,200,25);
+		this.score.setText(Integer.toString(this.biggestScore));
+		this.myPanel[0].add(this.scoreLabel);
+		this.myPanel[0].add(this.credits);
+		this.myPanel[0].add(this.score);
+	}
+	
 	/* Button Handler Method */
 	private class ButtonHandler implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -158,8 +195,10 @@ class Blackjack extends JFrame {
 			} else if(e.getSource() == buttonBet[2]) {
 				initPassGame();
 			} else if(e.getSource() == buttonBet[3]) {
+				runningScore += (Integer.parseInt(modalField.getText()) * 2);
 				initDoubleGame();
 			} else if(e.getSource() == buttonBet[4]) {
+				runningScore += Integer.parseInt(modalField.getText());
 				initStandGame();
 			} else if(e.getSource() == buttonBet[5]) {
 				initContinueGame();
@@ -186,11 +225,13 @@ class Blackjack extends JFrame {
 				this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/" + playerArrayCards[i] + "S.png"))));
 				this.userCards[i].setBounds(left[i],10,100,134);
 				this.myPanel[3].add(this.userCards[i]);
-				this.myPanel[3].revalidate();
-				this.myPanel[3].repaint();
 			}
+			this.myPanel[3].revalidate();
+			this.myPanel[3].repaint();
 			this.playerInHandsCards = 2;
 			this.playerCardsPosition = 2;
+			this.message += "Prepare Player Cards Table\n";
+			this.textBox.setText(this.message);
 		} catch(Exception e) {
 			System.out.println("Error = " + e.getMessage());
 		}
@@ -217,13 +258,19 @@ class Blackjack extends JFrame {
 				j+=1;
 			}
 		}
+		this.message += "Prepare Bandar Cards Table\n";
+		this.textBox.setText(this.message);
 	}
 	
 	/* Init Start the Game */
 	private void initStartGame() {
+		this.message += "Prepare New Game...\n";
+		this.textBox.setText(this.message);
 		this.modalField.setEnabled(false);
 		this.initPlayerHands();
 		this.initBandarHands();
+		this.message += "Player Start With Modal = " + this.modalField.getText();
+		this.textBox.setText(this.message);
 	}
 	
 	/* Init Hit Game */
@@ -235,11 +282,13 @@ class Blackjack extends JFrame {
 				this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/" + this.playerArrayInHandsCards[i] + "S.png"))));
 				this.userCards[i].setBounds(left[i],10,100,134);
 				this.myPanel[3].add(this.userCards[i]);
-				this.myPanel[3].revalidate();
-				this.myPanel[3].repaint();
 			}
+			this.myPanel[3].revalidate();
+			this.myPanel[3].repaint();
 			this.playerCardsPosition += 1;
 			this.playerInHandsCards += 1;
+			this.message += "Player Hit Cards.\n";
+			this.textBox.setText(this.message);
 		} catch(Exception e) {
 			System.out.println("Error = " + e.getMessage());
 		}
@@ -250,20 +299,26 @@ class Blackjack extends JFrame {
 		this.playerCardsPosition += 1;
 		this.playerMaxPass -= 1;
 		if(this.playerMaxPass == 0) this.buttonBet[2].setEnabled(false);
+		this.message += "Player Pass The Turn.\n";
+		this.textBox.setText(this.message);
 	}
 	
 	/* Init Double Game */
 	private void initDoubleGame() {
 		try {
+			//this.playerCardsPosition += 1;
+			this.playerInHandsCards += 1;
 			this.playerArrayInHandsCards[this.playerInHandsCards] = this.playerArrayCards[this.playerCardsPosition];
-			for(i=0;i<=this.playerInHandsCards;i++) {
+			for(i=0;i<this.playerInHandsCards;i++) {
 				this.myPanel[3].remove(userCards[i]);
 				this.userCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/" + this.playerArrayInHandsCards[i] + "S.png"))));
 				this.userCards[i].setBounds(left[i],10,100,134);
 				this.myPanel[3].add(this.userCards[i]);
-				this.myPanel[3].revalidate();
-				this.myPanel[3].repaint();
 			}
+			this.myPanel[3].revalidate();
+			this.myPanel[3].repaint();
+			this.message += "Player Double The Cards.\n";
+			this.textBox.setText(this.message);
 			this.initStandGame();
 		} catch(Exception e) {
 			System.out.println("Error = " + e.getMessage());
@@ -276,6 +331,8 @@ class Blackjack extends JFrame {
 			this.playerArrayInHandsCards[i] = (this.playerArrayInHandsCards[i] > 10) ? 10 : this.playerArrayInHandsCards[i];
 			this.playerSumScore += this.playerArrayInHandsCards[i];
 		}
+		this.message += "Player Stands.\n";
+		this.textBox.setText(this.message);
 		this.initWinner();
 	}
 	
@@ -287,40 +344,71 @@ class Blackjack extends JFrame {
 				this.bandarCards[i] = new JLabel(new ImageIcon(ImageIO.read(new File("cards/" + this.bandarArrayInHandsCards[i] + "S.png"))));
 				this.bandarCards[i].setBounds(left[i],10,100,134);
 				this.myPanel[2].add(this.bandarCards[i]);
-				this.myPanel[2].revalidate();
-				this.myPanel[2].repaint();
 			}
+			this.myPanel[2].revalidate();
+			this.myPanel[2].repaint();
+			this.message += "Bandar Open The Cards.\n";
+			this.textBox.setText(this.message);
 		} catch(Exception e) {
 			System.out.println("Error = " + e.getMessage());
 		}
 	}
 	
-	/* Init The Game Winner */
-	private void initWinner() {
-		this.initBandarCardsTable();
+	/* Set Winner hands */
+	private boolean setWinner() {
 		boolean result = false;
 		if(this.playerSumScore > this.bandarSumScore && (this.playerSumScore < 22 && (this.bandarSumScore < 22 || this.bandarSumScore > 21))) {
 			JOptionPane.showMessageDialog(null, "Kamu Menang Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			this.message += "YOU WIN.....!\n";
+			this.message += "Player Won " + Integer.toString(this.runningScore) + " Pouch.";
+			this.textBox.setText(this.message);
+			if(this.runningScore > this.biggestScore) {
+				this.score.setText(Integer.toString(this.runningScore));
+			} else {
+				this.score.setText(Integer.toString(this.biggestScore));
+			}
 			result = true;
 		} else if(this.playerSumScore == this.bandarSumScore && this.playerSumScore < 22) {
 			JOptionPane.showMessageDialog(null, "Draw Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			this.message += "DRAW.....!\n";
+			this.runningScore = 0;
+			this.textBox.setText(this.message);
 			result = true;
 		} else if(this.playerSumScore < 22 && this.bandarSumScore > 21) {
 			JOptionPane.showMessageDialog(null, "Kamu Menang Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			this.message += "YOU WIN.....!\n";
+			this.message += "Player Won " + Integer.toString(this.runningScore) + " Pouch.";
+			this.textBox.setText(this.message);
+			this.score.setText(Integer.toString(this.playerSumScore));
+			if(this.runningScore > this.biggestScore) {
+				this.score.setText(Integer.toString(this.runningScore));
+			} else {
+				this.score.setText(Integer.toString(this.biggestScore));
+			}
 			result = true;
 		} else {
 			JOptionPane.showMessageDialog(null, "Kamu Kalah Score : " + this.playerSumScore + " vs " + this.bandarSumScore);
+			this.message += "YOU LOSE.....!\n";
+			this.runningScore = 0;
+			this.textBox.setText(this.message);
 			result = false;
 		}
+		return result;
+	}
+	
+	/* Init The Game Winner */
+	private void initWinner() {
+		this.initBandarCardsTable();
+		this.message += "Bandar Score = " + this.bandarSumScore + " & " + " Player Score = " + this.playerSumScore + "\n";
+		this.textBox.setText(this.message);
 		
-		if(result == true) {
-			for(i=0;i<this.buttonBet.length;i++) {
-				this.buttonBet[i].setEnabled(false);
+		boolean result = this.setWinner();
+		
+		for(i=0;i<this.buttonBet.length;i++) {
+			this.buttonBet[i].setEnabled(false);
+			if(result == true) {
 				if(i>4) this.buttonBet[i].setEnabled(true);
-			}
-		} else {
-			for(i=0;i<this.buttonBet.length;i++) {
-				this.buttonBet[i].setEnabled(false);
+			} else {
 				if(i==6) this.buttonBet[i].setEnabled(true);
 			}
 		}
@@ -331,16 +419,20 @@ class Blackjack extends JFrame {
 		for(i=0;i<this.userCards.length;i++) {
 			this.myPanel[2].remove(this.bandarCards[i]);
 			this.myPanel[3].remove(this.userCards[i]);
-			this.myPanel[2].revalidate();
-			this.myPanel[3].revalidate();
-			this.myPanel[2].repaint();
-			this.myPanel[3].repaint();
 		}
+		this.myPanel[2].revalidate();
+		this.myPanel[3].revalidate();
+		this.myPanel[2].repaint();
+		this.myPanel[3].repaint();
+		this.message += "All Hands Clear.\n";
+		this.textBox.setText(this.message);
 	}
 	
 	/* Init Continue Game */
 	private void initContinueGame() {
 		try {
+			this.message += "Player Continue The Game.\n";
+			this.textBox.setText(this.message);
 			this.initClearAllHands();
 			this.initAllHands();
 			this.playerCardsPosition = 0;
@@ -366,6 +458,8 @@ class Blackjack extends JFrame {
 	/* Init Restart Game */
 	private void initRestartGame() {
 		try {
+			this.message += "Player Restart The Game.\n";
+			this.textBox.setText(this.message);
 			this.initClearAllHands();
 			this.initAllHands();
 			this.playerCardsPosition = 0;
